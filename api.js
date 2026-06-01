@@ -1,7 +1,7 @@
-const { GoogleGenAI } = require("@google/generative-ai");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 module.exports = async (req, res) => {
-  // 1. CORS Headers සෘජුවම කෝඩ් එක ඇතුළෙන්ම ලබා දීම
+  // CORS Headers සැකසීම
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
@@ -10,13 +10,13 @@ module.exports = async (req, res) => {
     'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
   );
 
-  // 2. බ්‍රවුසර් එකෙන් එවන OPTIONS Request එකට කෙළින්ම සාර්ථක ප්‍රතිචාරයක් දීම
+  // OPTIONS Request එකක් ආවොත් එතනින්ම Response එක අවසන් කිරීම
   if (req.method === 'OPTIONS') {
     res.status(200).end();
     return;
   }
 
-  // 3. අපිට අවශ්‍ය POST Request එක පමණක් බාර ගැනීම
+  // POST Request පමණක් බාර ගැනීම
   if (req.method !== 'POST') {
     return res.status(405).json({ message: "Method Not Allowed" });
   }
@@ -27,11 +27,11 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: "Message is required" });
     }
 
-    // Gemini API එක සම්බන්ධ කිරීම
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-    const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
+    // නිවැරදි නිල SDK ක්‍රමය (GoogleGenerativeAI)
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-    // Screen Printing ප්‍රවීණයෙකු ලෙස පිළිතුරු දීමට පද්ධතිය හැඩගැස්වීම (System Instruction)
+    // Screen Printing ප්‍රවීණයෙකු ලෙස පිළිතුරු දීමට හැඩගැස්වීම
     const prompt = `You are Videv Smart AI, an expert screen printing instructor with over 20 years of technical experience. 
     Answer the following user question professionally and helpfully in Sinhala language, focusing strictly on screen printing techniques, mesh, squeegee, inks, and heat press. 
     User Question: ${message}`;
@@ -43,7 +43,7 @@ module.exports = async (req, res) => {
     return res.status(200).json({ reply: text });
 
   } catch (error) {
-    console.error("Crashed Error:", error);
+    console.error("Server Error:", error);
     return res.status(500).json({ error: error.message });
   }
 };
